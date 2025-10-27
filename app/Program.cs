@@ -22,8 +22,8 @@ namespace NativeLibraryDemo
             TestArrayProcessing();
             Console.WriteLine();
             
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
+            // Console.WriteLine("Press any key to exit...");
+            // Console.ReadKey();
         }
         
         static void DisplayPlatformInfo()

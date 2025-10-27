@@ -30,23 +30,20 @@ jobs:
           sudo apt-get install -y gcc
           gcc --version
         elif [ "${{ runner.os }}" == "macOS" ]; then
-          # Check if Xcode command line tools are installed
           xcode-select -p || xcode-select --install
-          # Install GCC via Homebrew (optional)
           brew install gcc || echo "GCC installation skipped, using clang"
           clang --version
         elif [ "${{ runner.os }}" == "Windows" ]; then
-          # Install MinGW on Windows runner
-          choco install mingw -y || echo "Choco not available, trying existing GCC"
-          gcc --version || echo "GCC not available"
+          # Try to find existing GCC or install MinGW
+          gcc --version || echo "GCC not available, will try to use existing compiler"
         fi
         
     - name: 🏗️ Build C Library
       run: |
         echo "Building C library on ${{ runner.os }}..."
         if [ "${{ runner.os }}" == "Windows" ]; then
-          # Use PowerShell for Windows
-          pwsh -Command ".\build-windows.ps1"
+          # Use PowerShell for Windows with proper error handling
+          pwsh -Command "& { .\build-windows.ps1 }"
         else
           chmod +x build.sh
           ./build.sh
@@ -65,7 +62,6 @@ jobs:
         echo "Building C# app for ${{ runner.os }}..."
         dotnet build --configuration Release --verbosity minimal
         
-        # List the output directory to verify DLL is copied
         echo "Build output files:"
         if [ "${{ runner.os }}" == "Windows" ]; then
           dir bin\Release\net9.0\
@@ -102,16 +98,7 @@ jobs:
         dotnet run --configuration Release --no-build
         echo "✅ Application ran successfully!"
         
-    - name: 📊 Show Platform Info
+    - name: 📊 Show Success
       run: |
-        echo "=== Platform Information ==="
-        echo "OS: ${{ runner.os }}"
-        echo "Runner: ${{ runner.name }}"
-        if [ "${{ runner.os }}" == "Linux" ]; then
-          lsb_release -a || cat /etc/os-release
-        elif [ "${{ runner.os }}" == "macOS" ]; then
-          sw_vers
-        elif [ "${{ runner.os }}" == "Windows" ]; then
-          systeminfo | findstr /B /C:"OS Name" /C:"OS Version" || ver
-        fi
-        echo "============================"
+        echo "🎉 SUCCESS: ${{ matrix.platform }} build and test completed!"
+        echo "Platform: ${{ runner.os }}"

@@ -2,10 +2,13 @@
 Write-Host "🔨 Building C Library for Windows..."
 
 # Create libs directory if it doesn't exist
-New-Item -ItemType Directory -Force -Path "libs"
+if (-not (Test-Path "libs")) {
+    New-Item -ItemType Directory -Path "libs" | Out-Null
+}
 
 # Build the DLL
-& gcc -shared -o libs\mathlib.dll src\mathlib.c -I includes -D MATHLIB_EXPORTS -O2
+$gccCommand = "gcc -shared -o libs\mathlib.dll src\mathlib.c -I includes -D MATHLIB_EXPORTS -O2"
+Invoke-Expression $gccCommand
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Build failed!"
@@ -13,4 +16,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "✅ Built: libs\mathlib.dll"
-Get-ChildItem libs\
+Get-ChildItem "libs\"
