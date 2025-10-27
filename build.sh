@@ -8,9 +8,7 @@ case "$(uname -s)" in
     Linux*)
         echo "🐧 Building for Linux..."
         gcc -shared -o libs/libmathlib.so src/mathlib.c -I includes -fPIC -O2
-        # Create a symlink for the C# app
-        cd libs && ln -sf libmathlib.so mathlib && cd ..
-        echo "✅ Built Linux library: libs/libmathlib.so -> libs/mathlib"
+        echo "✅ Built Linux library: libs/libmathlib.so"
         ;;
     Darwin*)
         echo "🍎 Building for macOS..."
@@ -19,9 +17,7 @@ case "$(uname -s)" in
         else
             gcc -dynamiclib -o libs/libmathlib.dylib src/mathlib.c -I includes -O2
         fi
-        # Create a symlink for the C# app
-        cd libs && ln -sf libmathlib.dylib mathlib && cd ..
-        echo "✅ Built macOS library: libs/libmathlib.dylib -> libs/mathlib"
+        echo "✅ Built macOS library: libs/libmathlib.dylib"
         ;;
     CYGWIN*|MINGW*|MSYS*)
         echo "🪟 Building for Windows..."
@@ -34,6 +30,5 @@ case "$(uname -s)" in
         ;;
 esac
 
-# List what we built
 echo "Final library files:"
 ls -la libs/
