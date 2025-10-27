@@ -1,0 +1,81 @@
+name: Test All Platforms
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.platform }}
+    
+    steps:
+    - name: 🛎️ Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 9.0.x
+        
+    - name: 📦 Install Build Tools
+      run: |
+        echo "Installing build tools for ${{ runner.os }}..."
+        if [ "${{ runner.os }}" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y gcc
+          gcc --version
+        elif [ "${{ runner.os }}" == "macOS" ]; then
+          # Check if Xcode command line tools are installed
+          xcode-select -p || xcode-select --install
+          # Install GCC via Homebrew (optional)
+          brew install gcc || echo "GCC installation skipped, using clang"
+          clang --version
+        elif [ "${{ runner.os }}" == "Windows" ]; then
+          echo "Windows should have MSVC available in runner"
+        fi
+        
+    - name: 🏗️ Build C Library
+      run: |
+        echo "Building C library on ${{ runner.os }}..."
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          .\build.bat
+        else
+          chmod +x build.sh
+          ./build.sh
+        fi
+        
+        echo "Built files:"
+        ls -la libs/ || dir libs\
+        
+    - name: 🎯 Build C# Application
+      run: |
+        cd app
+        echo "Building C# app for ${{ runner.os }}..."
+        dotnet build --configuration Release --verbosity minimal
+        echo "Build completed successfully!"
+        
+    - name: 🚀 Run Application
+      run: |
+        cd app
+        echo "Running application on ${{ runner.os }}..."
+        dotnet run --configuration Release --no-build
+        echo "✅ Application ran successfully!"
+        
+    - name: 📊 Show Platform Info
+      run: |
+        echo "=== Platform Information ==="
+        echo "OS: ${{ runner.os }}"
+        echo "Runner: ${{ runner.name }}"
+        if [ "${{ runner.os }}" == "Linux" ]; then
+          lsb_release -a || cat /etc/os-release
+        elif [ "${{ runner.os }}" == "macOS" ]; then
+          sw_vers
+        elif [ "${{ runner.os }}" == "Windows" ]; then
+          systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
+        fi
+        echo "============================"
