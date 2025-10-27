@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>MyApplication</AssemblyName>
+    <RootNamespace>MyApplication</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!-- Platform-specific native library inclusion -->
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <Content Include="..\libs\mathlib.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>mathlib.dll</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+    <Content Include="..\libs\libmathlib.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>libmathlib.so</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
+    <Content Include="..\libs\libmathlib.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>libmathlib.dylib</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">
+    <Content Include="..\libs\libmathlib.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>libmathlib.dylib</Link>
+    </Content>
+  </ItemGroup>
+
+  <!-- Warn if native library is missing -->
+  <Target Name="CheckNativeDependencies" BeforeTargets="BeforeBuild">
+    <PropertyGroup>
+      <NativeLibPath Condition="'$(RuntimeIdentifier)' == 'win-x64'">..\libs\mathlib.dll</NativeLibPath>
+      <NativeLibPath Condition="'$(RuntimeIdentifier)' == 'linux-x64'">..\libs\libmathlib.so</NativeLibPath>
+      <NativeLibPath Condition="'$(RuntimeIdentifier)' == 'osx-x64'">..\libs\libmathlib.dylib</NativeLibPath>
+      <NativeLibPath Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">..\libs\libmathlib.dylib</NativeLibPath>
+    </PropertyGroup>
+    
+    <Warning Condition="!Exists('$(NativeLibPath)')" 
+             Text="Native library not found at $(NativeLibPath). Please build the C library first." />
+  </Target>
+
+</Project>
