@@ -52,6 +52,22 @@
     </Content>
   </ItemGroup>
 
+  <!-- Copy native libraries - SIMPLIFIED APPROACH -->
+  <ItemGroup>
+    <!-- Copy ALL libraries from libs folder -->
+    <Content Include="..\libs\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- Additional debug target to verify copying -->
+  <Target Name="VerifyNativeLibsCopied" AfterTargets="Build">
+    <Message Text="Verifying native libraries are copied..." Importance="high" />
+    <Message Text="OutputPath: $(OutputPath)" Importance="high" />
+    <Exec Command="ls -la $(OutputPath)" Condition="'$(OS)' != 'Windows_NT'" />
+    <Exec Command="dir $(OutputPath)" Condition="'$(OS)' == 'Windows_NT'" />
+  </Target>
+  
   <!-- Warn if native library is missing -->
   <Target Name="CheckNativeDependencies" BeforeTargets="BeforeBuild">
     <PropertyGroup>

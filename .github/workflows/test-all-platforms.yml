@@ -36,33 +36,69 @@ jobs:
           brew install gcc || echo "GCC installation skipped, using clang"
           clang --version
         elif [ "${{ runner.os }}" == "Windows" ]; then
-          echo "Windows should have MSVC available in runner"
+          # Install MinGW on Windows runner
+          choco install mingw -y || echo "Choco not available, trying existing GCC"
+          gcc --version || echo "GCC not available"
         fi
         
     - name: 🏗️ Build C Library
       run: |
         echo "Building C library on ${{ runner.os }}..."
         if [ "${{ runner.os }}" == "Windows" ]; then
-          .\build.bat
+          # Use PowerShell for Windows
+          pwsh -Command ".\build-windows.ps1"
         else
           chmod +x build.sh
           ./build.sh
         fi
         
         echo "Built files:"
-        ls -la libs/ || dir libs\
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          dir libs\
+        else
+          ls -la libs/
+        fi
         
     - name: 🎯 Build C# Application
       run: |
         cd app
         echo "Building C# app for ${{ runner.os }}..."
         dotnet build --configuration Release --verbosity minimal
-        echo "Build completed successfully!"
+        
+        # List the output directory to verify DLL is copied
+        echo "Build output files:"
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          dir bin\Release\net9.0\
+        else
+          ls -la bin/Release/net9.0/
+        fi
+        
+    - name: 🔍 Verify Native Library Location
+      run: |
+        cd app
+        echo "Checking for native library in output directory..."
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          dir bin\Release\net9.0\*.dll
+        elif [ "${{ runner.os }}" == "Linux" ]; then
+          ls -la bin/Release/net9.0/*.so
+        elif [ "${{ runner.os }}" == "macOS" ]; then
+          ls -la bin/Release/net9.0/*.dylib
+        fi
         
     - name: 🚀 Run Application
       run: |
         cd app
         echo "Running application on ${{ runner.os }}..."
+        
+        # Set library path for Linux/macOS
+        if [ "${{ runner.os }}" == "Linux" ]; then
+          export LD_LIBRARY_PATH=$PWD/bin/Release/net9.0:$LD_LIBRARY_PATH
+          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+        elif [ "${{ runner.os }}" == "macOS" ]; then
+          export DYLD_LIBRARY_PATH=$PWD/bin/Release/net9.0:$DYLD_LIBRARY_PATH
+          echo "DYLD_LIBRARY_PATH: $DYLD_LIBRARY_PATH"
+        fi
+        
         dotnet run --configuration Release --no-build
         echo "✅ Application ran successfully!"
         
@@ -76,6 +112,6 @@ jobs:
         elif [ "${{ runner.os }}" == "macOS" ]; then
           sw_vers
         elif [ "${{ runner.os }}" == "Windows" ]; then
-          systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
+          systeminfo | findstr /B /C:"OS Name" /C:"OS Version" || ver
         fi
         echo "============================"
