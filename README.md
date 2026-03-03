@@ -15,7 +15,7 @@ This repository contains both the managed C# demo app and the native C library i
 
 ## Prerequisites
 
-- .NET SDK 9.0 or later (dotnet)
+- .NET SDK 6.0 or later (dotnet)
 - A C compiler that can produce a Windows DLL (e.g. MinGW's `gcc`, or MSVC `cl`)
 - PowerShell (examples below assume PowerShell on Windows)
 
