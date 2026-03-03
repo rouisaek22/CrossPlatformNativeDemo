@@ -23,28 +23,29 @@ This repository contains both the managed C# demo app and the native C library i
 
 1) Build the native library (MinGW/GCC example — run from repository root):
 
+- `mathlib.dll`: for windows
+- `libmathlib.so`: for linux
+- `libmathlib.dylib`: for osx
+
 ```powershell
-gcc -shared -o .\libs\mathlib.dll .\src\mathlib.c -I .\includes -D MATHLIB_EXPORTS -O2 -lm
+gcc -shared -o .\libs\[mathlib.dll - libmathlib.so - libmathlib.dylib] .\src\mathlib.c -I .\includes -D MATHLIB_EXPORTS -O2 -lm
 ```
 
 The `-lm` flag links the math library (needed for `pow()` and `sqrt()`). If using MSVC, the math functions are part of the C runtime.
 
-2) Build the .NET application (solution-level build):
+2) Build the .NET application including the target OS (execute inside the app folder):
+
+- The build system will automatically handle library copying to output.
+- `-r` flag for target platform
 
 ```powershell
-dotnet build .\Project.sln -c Debug
+dotnet build -r [linux-x64 - win-x64 - osx-x64 - osx-arm64] -c Release
 ```
 
-3) Copy the native DLL to the .NET app's output folder:
+3) Run the demo app including the target OS (execute inside the app folder):
 
 ```powershell
-Copy-Item -Path .\libs\mathlib.dll -Destination .\app\bin\Debug\net9.0\win-x64\ -Force
-```
-
-4) Run the demo app (from repo root):
-
-```powershell
-dotnet run --project .\app\MyApplication.csproj -c Debug
+dotnet run -r [linux-x64 - win-x64 - osx-x64 - osx-arm64] -c Release
 ```
 
 The demo will show:
